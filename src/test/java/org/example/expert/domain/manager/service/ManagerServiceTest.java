@@ -61,6 +61,8 @@ class ManagerServiceTest {
         long managerUserId = 2L;
 
         Todo todo = new Todo();
+
+        //ReflectionTestUtils를 이용해 private 필드값에 직접 할당
         ReflectionTestUtils.setField(todo, "user", null);
 
         ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId);
