@@ -1,5 +1,6 @@
 package org.example.expert.config;
 
+import ch.qos.logback.core.subst.Token;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,8 +22,8 @@ import java.util.Date;
 public class JwtUtil {
 
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final long TOKEN_TIME = 60 * 60 * 1000L; // 60분
-
+    private static final long ACCESS_TOKEN_TIME = 60 * 60 * 1000L;
+    private static final long REFRESH_TOKEN_TIME = 7 * 24 * 60 * 60 * 1000L;
     @Value("${jwt.secret.key}")
     private String secretKey;
     private Key key;
@@ -34,7 +35,7 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String createToken(Long userId, String email, UserRole userRole) {
+    public String createAccessToken(Long userId, String email, UserRole userRole) {
         Date date = new Date();
 
         return BEARER_PREFIX +
@@ -42,7 +43,23 @@ public class JwtUtil {
                         .setSubject(String.valueOf(userId))
                         .claim("email", email)
                         .claim("userRole", userRole)
-                        .setExpiration(new Date(date.getTime() + TOKEN_TIME))
+                        .setExpiration(new Date(date.getTime() + ACCESS_TOKEN_TIME))
+                        .setIssuedAt(date) // 발급일
+                        .signWith(key, signatureAlgorithm) // 암호화 알고리즘
+                        .compact();
+
+    }
+
+    //Refresh Token 생성
+    public String createRefreshToken(Long userId, String email, UserRole userRole) {
+        Date date = new Date();
+
+        return BEARER_PREFIX +
+                Jwts.builder()
+                        .setSubject(String.valueOf(userId))
+                        .claim("email", email)
+                        .claim("userRole", userRole)
+                        .setExpiration(new Date(date.getTime() + REFRESH_TOKEN_TIME))
                         .setIssuedAt(date) // 발급일
                         .signWith(key, signatureAlgorithm) // 암호화 알고리즘
                         .compact();
