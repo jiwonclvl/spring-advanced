@@ -1,10 +1,11 @@
 package org.example.expert.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.expert.config.JwtUtil;
 import org.example.expert.config.PasswordEncoder;
+import org.example.expert.domain.auth.dto.request.RefreshTokenRequest;
 import org.example.expert.domain.auth.dto.request.SigninRequest;
 import org.example.expert.domain.auth.dto.request.SignupRequest;
+import org.example.expert.domain.auth.dto.response.TokenResponse;
 import org.example.expert.domain.auth.dto.response.SigninResponse;
 import org.example.expert.domain.auth.dto.response.SignupResponse;
 import org.example.expert.domain.auth.exception.AuthException;
@@ -14,6 +15,7 @@ import org.example.expert.domain.user.enums.UserRole;
 import org.example.expert.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
 
     @Transactional
     public SignupResponse signup(SignupRequest signupRequest) {
@@ -43,13 +45,14 @@ public class AuthService {
 
         User savedUser = userRepository.save(newUser);
 
-        String bearerToken = jwtUtil.createToken(savedUser.getId(), savedUser.getEmail(), userRole);
+        String accessToken = tokenService.createAccessToken(savedUser);
+        String refreshToken = tokenService.createRefreshToken(savedUser);
 
-        return new SignupResponse(bearerToken);
+        return new SignupResponse(accessToken, refreshToken);
     }
 
     @Transactional(readOnly = true)
-    public SigninResponse signin(SigninRequest signinRequest) {
+    public SigninResponse login(SigninRequest signinRequest) {
         User user = userRepository.findByEmail(signinRequest.getEmail()).orElseThrow(
                 () -> new InvalidRequestException("가입되지 않은 유저입니다."));
 
@@ -58,8 +61,25 @@ public class AuthService {
             throw new AuthException("잘못된 비밀번호입니다.");
         }
 
-        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getUserRole());
+        String accessToken = tokenService.createAccessToken(user);
+        String refreshToken = tokenService.createRefreshToken(user);
 
-        return new SigninResponse(bearerToken);
+        return new SigninResponse(accessToken, refreshToken);
+    }
+
+    //로그아웃 추가 구현
+    @Transactional
+    public void logout(Long userId) {
+        tokenService.revokeRefreshToken(userId);
+    }
+
+    @Transactional
+    public TokenResponse reissueToken(@RequestBody RefreshTokenRequest request) {
+        User user = tokenService.reissueToken(request);
+
+        String accessToken = tokenService.createAccessToken(user);
+        String refreshToken = tokenService.createRefreshToken(user);
+
+        return new TokenResponse(accessToken,refreshToken);
     }
 }
