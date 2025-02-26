@@ -21,7 +21,6 @@ public class TokenService {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-
     public String createAccessToken(User user) {
         return jwtUtil.createAccessToken(user.getId(), user.getEmail(), user.getUserRole());
     }
@@ -42,7 +41,7 @@ public class TokenService {
         refreshToken.updateStatus(INVALIDATED);
     }
 
-    public User reissueToken(RefreshTokenRequest request) {
+    public User refresh(RefreshTokenRequest request) {
         String token = request.getRefreshToken();
 
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token).orElseThrow(

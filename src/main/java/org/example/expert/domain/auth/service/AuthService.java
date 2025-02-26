@@ -75,7 +75,7 @@ public class AuthService {
 
     @Transactional
     public TokenResponse reissueToken(@RequestBody RefreshTokenRequest request) {
-        User user = tokenService.reissueToken(request);
+        User user = tokenService.refresh(request);
 
         String accessToken = tokenService.createAccessToken(user);
         String refreshToken = tokenService.createRefreshToken(user);

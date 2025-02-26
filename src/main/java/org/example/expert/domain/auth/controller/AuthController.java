@@ -34,10 +34,9 @@ public class AuthController {
     }
 
     //Refresh 토큰을 통해 Access 토큰 재발급 (refresh token rotation)
-    //access 토큰 만료 시 필터에서 걸러짐. 따라서 Controller에 도달하지 못한다.
     @PostMapping("/auths/refresh")
     public TokenResponse reissueToken(
-            @RequestBody RefreshTokenRequest request
+            @Valid @RequestBody RefreshTokenRequest request
             ) {
         return authService.reissueToken(request);
     }

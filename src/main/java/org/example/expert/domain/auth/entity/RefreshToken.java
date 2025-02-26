@@ -18,6 +18,7 @@ public class RefreshToken extends Timestamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //유저 아이디
     private Long userId;
 
     //Refresh Token 저장
@@ -33,8 +34,7 @@ public class RefreshToken extends Timestamped {
 
     public RefreshToken (Long userId) {
         this.userId = userId;
-        //jwt Token은 긴 문자열이기 때문에 성능을 높이기 위해 UUID를 사용 (추후 알아보기)
-        this.token = UUID.randomUUID().toString();
+        this.token = UUID.randomUUID().toString(); //jwt Token은 긴 문자열이기 때문에 성능을 높이기 위해 UUID를 사용
         this.status = VALID; //Token 상태 저장
     }
 
